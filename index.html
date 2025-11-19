@@ -126,7 +126,7 @@
   
     <!-- Trophies Chart -->  
     <div class="card">  
-        <h2>🏆 Score History (Top 1 - 1000)</h2>  
+        <h2>🏆 Score History (Top 1 - 9999)</h2>  
         <div class="chart-wrapper">  
             <canvas id="scoreChart"></canvas>  
         </div>  
@@ -155,6 +155,8 @@
                         <th>Top 9999</th>  
                         <th>Gap 1-10</th>  
                         <th>Gap 1-100</th>  
+                        <th>Gap 1-1000</th>  
+                        <th>Gap 1-9999</th>  
                     </tr>  
                 </thead>  
                 <tbody>  
@@ -222,7 +224,7 @@
     const labels = [];  
     const data = {  
         top1: [], top10: [], top100: [], top1000: [], top9999: [],  
-        gap10: [], gap100: [], gap1000: []  
+        gap10: [], gap100: [], gap1000: [], gap9999: []  
     };  
     const milestones = [];  
   
@@ -240,7 +242,7 @@
             const tableBody = document.querySelector('#dataTable tbody');  
             const tr = document.createElement('tr');  
             tr.className = 'milestone-row';  
-            tr.innerHTML = `<td colspan="8">${name} (System Update)</td>`;  
+            tr.innerHTML = `<td colspan="10">${name} (System Update)</td>`;  
             tableBody.appendChild(tr);  
             return;  
         }  
@@ -257,7 +259,8 @@
         data.gap10.push(Number(cols[6]));  
         data.gap100.push(Number(cols[7]));  
         data.gap1000.push(Number(cols[8]));  
-  
+        data.gap9999.push(Number(cols[9]));  
+
         // Populate Table  
         const tr = document.createElement('tr');  
         tr.innerHTML = `  
@@ -269,6 +272,8 @@
             <td>${cols[5]}</td>  
             <td>${cols[6]}</td>  
             <td>${cols[7]}</td>  
+            <td>${cols[8]}</td>  
+            <td>${cols[9]}</td> 
         `;  
         document.querySelector('#dataTable tbody').appendChild(tr);  
           
@@ -320,7 +325,8 @@
                 { label: 'Top 1', data: data.top1, borderColor: '#ff6b6b', tension: 0.3 },  
                 { label: 'Top 10', data: data.top10, borderColor: '#feca57', tension: 0.3 },  
                 { label: 'Top 100', data: data.top100, borderColor: '#48dbfb', tension: 0.3 },  
-                { label: 'Top 1000', data: data.top1000, borderColor: '#1dd1a1', tension: 0.3 }  
+                { label: 'Top 1000', data: data.top1000, borderColor: '#1dd1a1', tension: 0.3 },
+                { label: 'Top 9999', data: data.top9999, borderColor: '#ff9ff3', tension: 0.3 }  
             ]  
         },  
         options: commonOptions  
@@ -334,8 +340,9 @@
             labels: labels,  
             datasets: [  
                 { label: 'Gap (1-10)', data: data.gap10, borderColor: '#ff9f43', fill: true, backgroundColor: 'rgba(255, 159, 67, 0.1)' },  
-                { label: 'Gap (1-100)', data: data.gap100, borderColor: '#54a0ff', fill: true, backgroundColor: 'rgba(84, 160, 255, 0.1)' }  ,
-                { label: 'Gap (1-100)', data: data.gap1000, borderColor: '#9b59b6', fill: true, backgroundColor: 'rgba(155, 89, 182, 0.1)' }  
+                { label: 'Gap (1-100)', data: data.gap100, borderColor: '#54a0ff', fill: true, backgroundColor: 'rgba(84, 160, 255, 0.1)' },
+                { label: 'Gap (1-1000)', data: data.gap1000, borderColor: '#9b59b6', fill: true, backgroundColor: 'rgba(155, 89, 182, 0.1)' },  
+                { label: 'Gap (1-9999)', data: data.gap9999, borderColor: '#00cec9', fill: true, backgroundColor: 'rgba(0, 206, 201, 0.1)' }
             ]  
         },  
         options: commonOptions  
