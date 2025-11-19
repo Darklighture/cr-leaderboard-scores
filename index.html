@@ -1,0 +1,347 @@
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>Season Leaderboard Analytics</title>  
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>  
+    <style>  
+        :root {  
+            --bg-color: #1a1a2e;  
+            --card-bg: #16213e;  
+            --text-main: #e94560;  
+            --text-sec: #bdc3c7;  
+            --accent: #0f3460;  
+            --border: #2c3e50;  
+        }  
+  
+        body {  
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;  
+            background-color: var(--bg-color);  
+            color: var(--text-sec);  
+            margin: 0;  
+            padding: 20px;  
+        }  
+  
+        .container {  
+            max-width: 1200px;  
+            margin: 0 auto;  
+        }  
+  
+        h1 {  
+            color: #fff;  
+            text-align: center;  
+            margin-bottom: 30px;  
+            font-weight: 300;  
+            letter-spacing: 2px;  
+        }  
+  
+        .card {  
+            background-color: var(--card-bg);  
+            border-radius: 12px;  
+            padding: 20px;  
+            margin-bottom: 30px;  
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);  
+        }  
+  
+        .chart-wrapper {  
+            position: relative;  
+            height: 400px;  
+            width: 100%;  
+        }  
+  
+        h2 {  
+            margin-top: 0;  
+            color: var(--text-main);  
+            font-size: 1.2rem;  
+            border-bottom: 1px solid var(--border);  
+            padding-bottom: 10px;  
+            margin-bottom: 15px;  
+        }  
+  
+        /* Table Styling */  
+        .table-responsive {  
+            overflow-x: auto;  
+        }  
+  
+        table {  
+            width: 100%;  
+            border-collapse: collapse;  
+            font-size: 0.9rem;  
+        }  
+  
+        th, td {  
+            padding: 12px 15px;  
+            text-align: right;  
+            border-bottom: 1px solid var(--border);  
+        }  
+  
+        th:first-child, td:first-child {  
+            text-align: left;  
+            position: sticky;  
+            left: 0;  
+            background-color: var(--card-bg);  
+        }  
+  
+        th {  
+            background-color: var(--accent);  
+            color: #fff;  
+            font-weight: 600;  
+        }  
+  
+        tr:hover td {  
+            background-color: rgba(233, 69, 96, 0.1);  
+        }  
+  
+        .milestone-row td {  
+            background-color: rgba(255, 215, 0, 0.1);  
+            color: #ffd700;  
+            text-align: center;  
+            font-weight: bold;  
+            letter-spacing: 1px;  
+        }  
+  
+        .legend {  
+            display: flex;  
+            justify-content: center;  
+            gap: 15px;  
+            margin-bottom: 10px;  
+            font-size: 0.9em;  
+        }  
+          
+        .legend span {  
+            display: inline-block;  
+            width: 12px;  
+            height: 12px;  
+            border-radius: 50%;  
+            margin-right: 5px;  
+        }  
+    </style>  
+</head>  
+<body>  
+  
+<div class="container">  
+    <h1>LEADERBOARD HISTORY</h1>  
+  
+    <!-- Trophies Chart -->  
+    <div class="card">  
+        <h2>🏆 Score History (Top 1 - 1000)</h2>  
+        <div class="chart-wrapper">  
+            <canvas id="scoreChart"></canvas>  
+        </div>  
+    </div>  
+  
+    <!-- Gaps Chart -->  
+    <div class="card">  
+        <h2>📊 Gap Analysis (Diff between Ranks)</h2>  
+        <div class="chart-wrapper">  
+            <canvas id="gapChart"></canvas>  
+        </div>  
+    </div>  
+  
+    <!-- Data Table -->  
+    <div class="card">  
+        <h2>📋 Detailed Data</h2>  
+        <div class="table-responsive">  
+            <table id="dataTable">  
+                <thead>  
+                    <tr>  
+                        <th>Season</th>  
+                        <th>Top 1</th>  
+                        <th>Top 10</th>  
+                        <th>Top 100</th>  
+                        <th>Top 1000</th>  
+                        <th>Top 9999</th>  
+                        <th>Gap 1-10</th>  
+                        <th>Gap 1-100</th>  
+                    </tr>  
+                </thead>  
+                <tbody>  
+                    <!-- JS will populate this -->  
+                </tbody>  
+            </table>  
+        </div>  
+    </div>  
+</div>  
+  
+<script>  
+    // Raw CSV Data  
+    const rawData = `season,top1,top10,top100,top1000,top9999,top1-top10,top1-top100,top1-top1000,top1-top9999  
+2022-01,8929,8816,8539,8009,7178,113,390,920,1751  
+2022-02,8640,8533,8275,7742,7051,107,365,898,1589  
+2022-03,8533,8401,8160,7645,7015,132,373,888,1518  
+2022-04,8542,8419,8146,7644,7016,123,396,898,1526  
+2022-05,8766,8649,8392,7814,7090,117,374,952,1676  
+2022-06,8595,8513,8240,7687,7017,82,355,908,1578  
+2022-07,8602,8520,8226,7645,6968,82,376,957,1634  
+2022-08,8670,8585,8317,7728,7022,85,353,942,1648  
+2022-09,8492,8379,8097,7594,6913,113,395,898,1579  
+传奇之路,,,,,,,,,  
+2022-10,2977,2830,2606,2242,1794,147,371,735,1183  
+2022-11,3433,3360,3120,2661,2067,73,313,772,1366  
+2022-12,3604,3536,3226,2665,2001,68,378,939,1603  
+2023-01,3956,3871,3567,2916,2183,85,389,1040,1773  
+2023-02,3674,3578,3268,2738,2034,96,406,936,1640  
+2023-03,3733,3608,3307,2780,2072,125,426,953,1661  
+2023-04,3295,3209,2914,2494,1919,86,381,801,1376  
+2023-05,3942,3878,3517,2956,2186,64,425,986,1756  
+2023-06,3792,3710,3323,2817,2039,82,469,975,1753  
+2023-07,4012,3954,3597,3008,2195,58,415,1004,1817  
+2023-08,3834,3751,3404,2851,2083,83,430,983,1751  
+2023-09,3760,3666,3308,2752,2070,94,452,1008,1690  
+2023-10,3980,3904,3594,2984,2204,76,386,996,1776  
+2023-11,3620,3540,3201,2695,2047,80,419,925,1573  
+2023-12,3597,3519,3171,2645,2015,78,426,952,1582  
+2024-01,4011,3926,3585,2928,2184,85,426,1083,1827  
+2024-02,3898,3785,3444,2840,2104,113,454,1058,1794  
+2024-03,3826,3738,3410,2821,2103,88,416,1005,1723  
+2024-04,4024,3904,3542,2981,2216,120,482,1043,1808  
+2024-05,3827,3690,3348,2801,2088,137,479,1026,1739  
+2024-06,3603,3556,3166,2655,1957,47,437,948,1646  
+2024-07,4047,3970,3612,3006,2168,77,435,1041,1879  
+2024-08,3797,3689,3413,2824,2115,108,384,973,1682  
+2024-09,4100,3978,3647,3048,2283,122,453,1052,1817  
+2024-10,3759,3653,3417,2861,2160,106,342,898,1599  
+2024-11,3612,3537,3277,2747,2097,75,335,865,1515  
+2024-12,3810,3720,3441,2938,2250,90,369,872,1560  
+2025-01,3874,3802,3511,2922,2196,72,363,952,1678  
+2025-02,3756,3651,3326,2823,2110,105,430,933,1646  
+2025-03,3925,3837,3533,3004,2284,88,392,921,1641  
+2025-04,3792,3743,3459,2939,2223,49,333,853,1569  
+2025-05,3882,3820,3506,3009,2248,62,376,873,1634  
+2025-06,4161,4087,3790,3196,2400,74,371,965,1761  
+15000杯,,,,,,,,,  
+2025-07,4225,4161,3877,3272,2459,64,348,953,1766  
+2025-08,3874,3795,3512,2921,2074,79,362,953,1800  
+2025-09,4155,4018,3730,3161,2400,137,425,994,1755  
+2025-10,3625,3515,3250,2774,2160,110,375,851,1465`;  
+  
+    // Parsing Logic  
+    const rows = rawData.trim().split('\n');  
+    const labels = [];  
+    const data = {  
+        top1: [], top10: [], top100: [], top1000: [], top9999: [],  
+        gap10: [], gap100: [], gap1000: []  
+    };  
+    const milestones = [];  
+  
+    let dataIndex = 0;  
+  
+    rows.forEach((row, index) => {  
+        if (index === 0) return; // Skip header  
+          
+        // Handle special milestones  
+        if (row.startsWith('传奇之路') || row.startsWith('15000杯')) {  
+            const name = row.split(',')[0];  
+            milestones.push({ index: dataIndex - 1, name: name }); // Mark the previous point as the line  
+              
+            // Add to table as full width row  
+            const tableBody = document.querySelector('#dataTable tbody');  
+            const tr = document.createElement('tr');  
+            tr.className = 'milestone-row';  
+            tr.innerHTML = `<td colspan="8">${name} (System Update)</td>`;  
+            tableBody.appendChild(tr);  
+            return;  
+        }  
+  
+        const cols = row.split(',');  
+        const season = cols[0];  
+          
+        labels.push(season);  
+        data.top1.push(Number(cols[1]));  
+        data.top10.push(Number(cols[2]));  
+        data.top100.push(Number(cols[3]));  
+        data.top1000.push(Number(cols[4]));  
+        data.top9999.push(Number(cols[5]));  
+        data.gap10.push(Number(cols[6]));  
+        data.gap100.push(Number(cols[7]));  
+        data.gap1000.push(Number(cols[8]));  
+  
+        // Populate Table  
+        const tr = document.createElement('tr');  
+        tr.innerHTML = `  
+            <td>${cols[0]}</td>  
+            <td>${cols[1]}</td>  
+            <td>${cols[2]}</td>  
+            <td>${cols[3]}</td>  
+            <td>${cols[4]}</td>  
+            <td>${cols[5]}</td>  
+            <td>${cols[6]}</td>  
+            <td>${cols[7]}</td>  
+        `;  
+        document.querySelector('#dataTable tbody').appendChild(tr);  
+          
+        dataIndex++;  
+    });  
+  
+    // Create Annotations for Chart.js  
+    const annotations = {};  
+    milestones.forEach((m, i) => {  
+        annotations[`line${i}`] = {  
+            type: 'line',  
+            xMin: m.index + 0.5, // Place between points  
+            xMax: m.index + 0.5,  
+            borderColor: '#e94560',  
+            borderWidth: 2,  
+            borderDash: [5, 5],  
+            label: {  
+                display: true,  
+                content: m.name,  
+                position: 'start',  
+                backgroundColor: '#e94560',  
+                color: 'white'  
+            }  
+        };  
+    });  
+  
+    // Chart Options Shared  
+    const commonOptions = {  
+        responsive: true,  
+        maintainAspectRatio: false,  
+        plugins: {  
+            legend: { labels: { color: '#bdc3c7' } },  
+            annotation: { annotations: annotations }  
+        },  
+        scales: {  
+            x: { grid: { color: '#2c3e50' }, ticks: { color: '#bdc3c7' } },  
+            y: { grid: { color: '#2c3e50' }, ticks: { color: '#bdc3c7' } }  
+        },  
+        interaction: { mode: 'index', intersect: false }  
+    };  
+  
+    // 1. Score Chart  
+    const ctxScore = document.getElementById('scoreChart').getContext('2d');  
+    new Chart(ctxScore, {  
+        type: 'line',  
+        data: {  
+            labels: labels,  
+            datasets: [  
+                { label: 'Top 1', data: data.top1, borderColor: '#ff6b6b', tension: 0.3 },  
+                { label: 'Top 10', data: data.top10, borderColor: '#feca57', tension: 0.3 },  
+                { label: 'Top 100', data: data.top100, borderColor: '#48dbfb', tension: 0.3 },  
+                { label: 'Top 1000', data: data.top1000, borderColor: '#1dd1a1', tension: 0.3 }  
+            ]  
+        },  
+        options: commonOptions  
+    });  
+  
+    // 2. Gap Chart  
+    const ctxGap = document.getElementById('gapChart').getContext('2d');  
+    new Chart(ctxGap, {  
+        type: 'line',  
+        data: {  
+            labels: labels,  
+            datasets: [  
+                { label: 'Gap (1-10)', data: data.gap10, borderColor: '#ff9f43', fill: true, backgroundColor: 'rgba(255, 159, 67, 0.1)' },  
+                { label: 'Gap (1-100)', data: data.gap100, borderColor: '#54a0ff', fill: true, backgroundColor: 'rgba(84, 160, 255, 0.1)' }  ,
+                { label: 'Gap (1-100)', data: data.gap1000, borderColor: '#9b59b6', fill: true, backgroundColor: 'rgba(155, 89, 182, 0.1)' }  
+            ]  
+        },  
+        options: commonOptions  
+    });  
+  
+</script>  
+  
+</body>  
+</html>  
