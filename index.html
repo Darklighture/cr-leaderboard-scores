@@ -140,7 +140,7 @@
 <body>  
   
 <div class="container">  
-    <h1>LEADERBOARD HISTORY</h1>  
+    <h1>CR LEADERBOARD HISTORY</h1>  
   
     <!-- Trophies Chart -->  
     <div class="card">  
@@ -205,7 +205,7 @@
 2022-07,8602,8520,8226,7645,6968,82,376,957,1634,short  
 2022-08,8670,8585,8317,7728,7022,85,353,942,1648,long  
 2022-09,8492,8379,8097,7594,6913,113,395,898,1579,short  
-传奇之路,,,,,,,,,,  
+Path of Legends,,,,,,,,,,  
 2022-10,2977,2830,2606,2242,1794,147,371,735,1183,short  
 2022-11,3433,3360,3120,2661,2067,73,313,772,1366,long  
 2022-12,3604,3536,3226,2665,2001,68,378,939,1603,short  
@@ -239,12 +239,14 @@
 2025-04,3792,3743,3459,2939,2223,49,333,853,1569,short  
 2025-05,3882,3820,3506,3009,2248,62,376,873,1634,short  
 2025-06,4161,4087,3790,3196,2400,74,371,965,1761,long  
-15000杯,,,,,,,,,,  
+Seasonal Arena,,,,,,,,,,  
 2025-07,4225,4161,3877,3272,2459,64,348,953,1766,short  
 2025-08,3874,3795,3512,2921,2074,79,362,953,1800,short  
 2025-09,4155,4018,3730,3161,2400,137,425,994,1755,long  
-2025-10,3625,3515,3250,2774,2160,110,375,851,1465,short`;  
-  
+2025-10,3625,3515,3250,2774,2160,110,375,851,1465,short 
+2025-11,3777,3693,3424,2890,2222,84,353,887,1555,short
+12000 Trophies,,,,,,,,,,
+2025-12,0,0,0,0,0,0,0,0,0,long`;  
     // Parsing Logic  
     const rows = rawData.trim().split('\n');  
     const labels = [];  
@@ -266,9 +268,8 @@
         if (index === 0) return; // Skip header  
           
         // Handle special milestones  
-        if (row.startsWith('传奇之路') || row.startsWith('15000杯') || row.startsWith('浼犲涔嬭矾')) {  
+        if (row.startsWith('Path of Legends') || row.startsWith('Seasonal Arena') || row.startsWith('12000 Trophies')) {  
             let name = row.split(',')[0];  
-            if (name.startsWith('浼')) name = "传奇之路";  
             milestones.push({ index: dataIndex - 1, name: name });  
               
             const tableBody = document.querySelector('#dataTable tbody');  
@@ -342,6 +343,22 @@
     // Create Annotations  
     const annotations = {};  
     milestones.forEach((m, i) => {  
+    // 为每个里程碑设置特定的垂直位置和偏移
+    let position = 'start';
+    let yOffset = 0;
+    
+    // 根据里程碑名称设置不同的位置
+    if (m.name.includes('Path of Legends')) {
+        position = 'start';
+        yOffset = -20;
+    } else if (m.name.includes('Seasonal Arena')) {
+        position = 'end';
+        yOffset = -20;
+    } else if (m.name.includes('12000 Trophies')) {
+        position = 'start';
+        yOffset = -40;  // 比第一个更高一些
+    }
+    
         annotations[`line${i}`] = {  
             type: 'line',  
             xMin: m.index + 0.5,  
@@ -352,9 +369,13 @@
             label: {  
                 display: true,  
                 content: m.name,  
-                position: 'start',  
+                position: 'positon',  
                 backgroundColor: '#e94560',  
-                color: 'white'  
+                color: 'white',  
+                yAdjust: yOffset,
+                font: {
+                       size: 10
+                }
             }  
         };  
     });  
@@ -383,9 +404,19 @@
                     color: xAxisColors // Apply dynamic colors to labels  
                 }   
             },  
-            y: { grid: { color: '#2c3e50' }, ticks: { color: '#bdc3c7' } }  
+            y: { grid: { color: '#2c3e50' }, ticks: { color: '#bdc3c7' },
+                  // 为y轴添加更多空间
+                  beginAtZero: false
+           }  
         },  
-        interaction: { mode: 'index', intersect: false }  
+        interaction: { mode: 'index', intersect: false },
+    // 添加图表内边距
+        layout: {
+                padding: {
+                         top: 30,  // 顶部增加内边距
+                          bottom: 20
+        }
+    }
     };  
   
     // 1. Score Chart  
@@ -455,4 +486,3 @@
 </script>  
 </body>  
 </html>  
-
